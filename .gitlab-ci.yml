@@ -15,21 +15,22 @@ stages:
   - down
   - up
 
-down:
+compose-down:
   stage: down
   tags:
     - bash
   script:
     - docker-compose down
 
-build_and_deploy:
-  stage: build_and_deploy
+compose-up:
+  stage: up
   tags:
     - bash
   script:
     - docker-compose up -d --no-deps --build
   dependencies:
-    - down
+    - compose-down
+  when: manual
 
 
     #sudo docker run --name mongodb-tublr-posts -d --network overlay_network -p 27017:27017 -v /home/icefox/mongo_tublr_posts:/data/db mongo

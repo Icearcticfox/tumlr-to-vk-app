@@ -51,10 +51,6 @@ class VkWorker(Thread):
             publish_date = datetime.datetime.now() + delta_published_time
         else:
             publish_date = last_post_time + delta_published_time
-            publish_date_unix = int(time.mktime((publish_date.timetuple())))
-
-            #return publish_date_unix
-
         if 23 > publish_date.hour > 9:
             publish_date_unix = int(time.mktime((publish_date.timetuple())))
         else:
@@ -74,7 +70,6 @@ class VkWorker(Thread):
                                   )
 
     def queue_picker(self):
-        print("берем пост из очереди")
         post_to_public = self.db_conn.post_getter({"published": False})
         if post_to_public is None:
             self.empty_picker_queue.put(True)
@@ -95,6 +90,7 @@ class VkWorker(Thread):
     def start(self):
         while True:
             try:
+                print("берем пост из очереди")
                 post_data = self.queue_picker()
                 print(post_data)
                 if post_data:

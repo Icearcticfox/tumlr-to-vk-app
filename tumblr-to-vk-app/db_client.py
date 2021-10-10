@@ -17,9 +17,12 @@ class DbConn:
         print(self.tumblr_posts_collection)
 
     def post_adder(self, blog_name, post_id, photos):
+        published = False
         if not self.tumblr_posts_collection.find_one({"post_id": post_id}):
             try:
-                self.tumblr_posts_collection.insert_one({"post_id": post_id, "published": False,
+                if [photo for photo in photos if photo.split(".")[-1] in ["gif"]]:
+                    published = "Failed"
+                self.tumblr_posts_collection.insert_one({"post_id": post_id, "published": published,
                                                          "blog_name": blog_name, "photos": photos})
             except Exception as ex:
                 print(ex)
