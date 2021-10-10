@@ -13,7 +13,7 @@
 
 stages:
   - down
-  - build_and_deploy
+  - up
 
 down:
   stage: down
