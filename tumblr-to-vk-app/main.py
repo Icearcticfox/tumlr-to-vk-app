@@ -1,5 +1,3 @@
-print("Hello i'm alive!")
-
 from config import Config
 from db_client import DbConn
 from tumblr_worker import TumblrWorker

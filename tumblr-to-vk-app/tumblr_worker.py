@@ -87,6 +87,6 @@ class TumblrWorker(Thread):
         while True:
             try:
                 self.dashboard_post_getter()
-                time.sleep(30)
+                time.sleep(3600)
             except Exception as ex:
                 print(f"Ошибка в треде tumblr_workers {ex}")
