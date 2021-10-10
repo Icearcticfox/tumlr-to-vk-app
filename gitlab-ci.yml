@@ -1,0 +1,25 @@
+#variables:
+#  tagname: $CI_COMMIT_TAG
+#  docker_html_path: "/www"
+#  deploy_subfolder: staging
+#  source_folder: doc
+
+#workflow:
+#  rules:
+#    - if: $CI_COMMIT_TAG == null
+#      variables:
+#        tagname: $CI_COMMIT_BRANCH  # Override globally-defined DEPLOY_VARIABLE
+#    - when: always                            # Run the pipeline in other cases
+
+stages:
+  - build_and_deploy
+
+build_and_deploy:
+  stage: build_and_deploy
+  tags:
+    - bash
+  script:
+    - docker-compose up --no-deps --build
+
+
+#sudo docker run --name mongodb-tublr-posts -d --network overlay_network -p 27017:27017 -v /home/icefox/mongo_tublr_posts:/data/db mongo
