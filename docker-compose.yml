@@ -6,16 +6,29 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./mnt/disks/sdb2/posts:/data/db
+      - ./mnt/disks/sdb2/dbposts:/data/db
     networks:
       - tumblr-app
 
   tumblr-to-vk-app:
     build: .
-    env_file:
-      - .env
+    environment:
+      CONNECTION_STRING: ${CONNECTION_STRING}
+      APP_ID: ${APP_ID}
+      APP_SECRET_KEY: ${APP_SECRET_KEY
+      APP_SERVICE_KEY: ${APP_SERVICE_KEY}
+      GROUP_SECRET: ${GROUP_SECRET}
+      USER_ACCESS_TOKEN: ${USER_ACCESS_TOKEN}
+      GROUP_ID: ${GROUP_ID}
+      TUMBLR_CONSUMER_KEY: ${TUMBLR_CONSUMER_KEY}
+      TUMBLR_CONSUMER_SECRET: ${TUMBLR_CONSUMER_SECRET}
+      TUMBLR_OAUTH_TOKEN: ${TUMBLR_OAUTH_TOKEN}
+      TUMBLR_OAUTH_SECRET: ${TUMBLR_OAUTH_SECRET}
+      FILES_FOLDER: ${FILES_FOLDER}
+#    env_file:
+#      - .env
     volumes:
-      - ./mnt/disks/sdb2/posts
+      - $FILES_FOLDER
     depends_on:
       - mongo
     networks:
