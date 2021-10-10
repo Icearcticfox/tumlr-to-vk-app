@@ -28,7 +28,7 @@ services:
 #    env_file:
 #      - .env
     volumes:
-      - $FILES_FOLDER
+      - .$FILES_FOLDER
     depends_on:
       - mongo
     networks:
