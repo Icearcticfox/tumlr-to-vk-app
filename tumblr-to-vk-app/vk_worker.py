@@ -72,10 +72,11 @@ class VkWorker(Thread):
                                   )
 
     def queue_picker(self, publish_date):
-        blog_posted_daily_counter = defaultdict
-        all_public_daily = self.db_conn.daily_posts_published(publish_date)
+        blog_posted_daily_counter = defaultdict(int)
+        all_public_daily = [doc for doc in self.db_conn.daily_posts_published(publish_date)]
         if all_public_daily:
-            blog_posted_daily_counter += [post["blog_name"] for post in all_public_daily]
+            for post in all_public_daily:
+                blog_posted_daily_counter[post["blog_name"]] += 1
             blog_name_to_public = min(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
             searching_post = {"published": False, "blog_name": blog_name_to_public}
         else:

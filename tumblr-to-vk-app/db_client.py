@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-import datetime
 
 
 class DbConn:
@@ -34,7 +33,7 @@ class DbConn:
         return post
 
     def daily_posts_published(self, publish_date):
-        all_public_daily = self.tumblr_posts_collection.find({"published": True, "publish_date": publish_date}).sort({'_id': -1}).limit()
+        all_public_daily = self.tumblr_posts_collection.find({"published": True, "publish_date": publish_date})
         return all_public_daily
 
     def post_updater(self, post_id, publish_date, status=True):
