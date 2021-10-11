@@ -60,7 +60,7 @@ class VkWorker(Thread):
             first_time = datetime.time(hour=9, minute=random.randint(0, 39))
             publish_time = datetime.datetime.combine(publish_time, first_time)
             publish_time_unix = int(time.mktime((publish_time.timetuple())))
-        publish_date_human = publish_time.date()
+        publish_date_human = str(publish_time.date())
 
         return {"publish_time_unix": publish_time_unix, "publish_date_human": publish_date_human}
 

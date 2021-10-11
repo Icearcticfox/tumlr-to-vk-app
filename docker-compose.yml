@@ -6,7 +6,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./mnt/disks/sdb2/dbposts:/data/db
+      - /mnt/disks/sdb2/dbposts:/data/db
     networks:
       - tumblr-app
 
@@ -28,7 +28,7 @@ services:
 #    env_file:
 #      - .env
     volumes:
-      - .$FILES_FOLDER
+      - $FILES_FOLDER
     depends_on:
       - mongo
     networks:
