@@ -4,6 +4,7 @@ import os
 class Config:
 
     def __init__(self):
+        self.script_settings = None
         self.connection_string = os.getenv("CONNECTION_STRING")
         self.app_id = int(os.getenv("APP_ID"))
         self.app_secret_key = os.getenv("APP_SECRET_KEY")

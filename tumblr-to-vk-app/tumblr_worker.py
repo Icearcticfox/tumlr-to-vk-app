@@ -27,19 +27,16 @@ class TumblrWorker(Thread):
         if self.files_folder is None:
             self.files_folder = "."
 
-    def dashboard_post_image_saver(self, post):
-        blog_name = post["blog_name"]
-        post_id = post['trail'][0]["post"]['id']
+    def dashboard_post_image_saver(self, image_list, blog_name, post_id):
         if self.db_client.post_getter({"post_id": post_id}) is None:
             photos = []
             if not os.path.isdir(f"{self.files_folder}/{blog_name}"):
                 os.mkdir(f"{self.files_folder}/{blog_name}")
             if not os.path.isdir(f"{self.files_folder}/{blog_name}/{post_id}"):
                 os.mkdir(f"{self.files_folder}/{blog_name}/{post_id}")
-            for photo in post["photos"]:
-                photo_name = photo['original_size']['url'].split('/')[-1]
-                # if photo_name.split(".")[-1] in ["png", "jpg", jpeg]:
-                request.urlretrieve(f"{photo['original_size']['url']}",
+            for image in image_list:
+                photo_name = image.split('/')[-1]
+                request.urlretrieve(f"{image}",
                                     f"{self.files_folder}/{blog_name}/{post_id}/"
                                     f"{photo_name}")
                 photos.append(photo_name)
@@ -47,12 +44,28 @@ class TumblrWorker(Thread):
 
             return True
 
+    def photo_post_parse(self, post) -> list:
+        photo_url_list = [photo['original_size']['url'].split('/')[-1] for photo in post["photos"]]
+        return photo_url_list
+
+    def text_post_parse(self, post) -> list:
+        photo_url_list = [image_url for image_url in post["body"].split("\"") if "https" in image_url]
+        return photo_url_list
+
     def dashboard_parser(self, dashboard):
         was_added = False
         for post in dashboard["posts"]:
             if post["type"] == "photo":
-                if self.dashboard_post_image_saver(post):
-                    was_added = True
+                image_list = self.photo_post_parse(post)
+            elif post["type"] == "text":
+                image_list = self.text_post_parse(post)
+            else:
+                continue
+
+            blog_name = post["blog_name"]
+            post_id = post["id"]
+            if self.dashboard_post_image_saver(image_list, blog_name, post_id):
+                was_added = True
 
         return was_added
 
@@ -60,15 +73,13 @@ class TumblrWorker(Thread):
 
         """Получение постов с дашборда"""
 
-        while True:
-            if self.empty_picker_queue.get():
-                self.time_offset += 2
-            dashboard = self.client.dashboard(type="photo", offset=self.time_offset)
+        if self.empty_picker_queue.get():
+            self.time_offset += 2
+        dashboard = self.client.dashboard(limit=20, offset=self.time_offset)
 
-            if self.dashboard_parser(dashboard):
-                self.time_offset = 0
-                return True
-            time.sleep(5)
+        if self.dashboard_parser(dashboard):
+            self.time_offset = 0
+            return True
 
     # def tag_image_getter(self):
     #
