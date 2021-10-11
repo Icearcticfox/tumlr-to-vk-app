@@ -90,19 +90,19 @@ class VkWorker(Thread):
     def start(self):
         while True:
             try:
+                post_data = False
                 print("берем пост из очереди")
-                post_data = self.queue_picker()
-                print(post_data)
-                if post_data:
-                    print("загружаем фото")
-                    uploaded_photo = self.server_upload(post_data["photo_path"])
-                    print(f"загруженные фото {uploaded_photo}")
-                    print("make attacms")
-                    atcms = self.make_attachments(uploaded_photo)
-                    publish_date_unix = self.calc_publish_date()
-                    print("публикуем пост")
-                    self.post_publish(atcms, publish_date_unix)
-                    self.db_conn.post_updater(post_data["post_id"])
+                while post_data is False:
+                    post_data = self.queue_picker()
+                print("загружаем фото")
+                uploaded_photo = self.server_upload(post_data["photo_path"])
+                print(f"загруженные фото {uploaded_photo}")
+                print("make attacms")
+                atcms = self.make_attachments(uploaded_photo)
+                publish_date_unix = self.calc_publish_date()
+                print("публикуем пост")
+                self.post_publish(atcms, publish_date_unix)
+                self.db_conn.post_updater(post_data["post_id"])
                 time.sleep(3600)
             except BaseException as ex:
                 print(f"Ошибка в треде vk_workers {ex}")
