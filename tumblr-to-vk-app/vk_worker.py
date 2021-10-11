@@ -3,6 +3,7 @@ import vk_api
 import datetime
 import time
 import random
+from collections import defaultdict
 
 
 class VkWorker(Thread):
@@ -46,21 +47,22 @@ class VkWorker(Thread):
 
     def calc_publish_date(self):
         last_post_time = self.get_last_postponed_time()
-        delta_published_time = datetime.timedelta(minutes=random.randint(60, 100))
+        delta_published_time = datetime.timedelta(minutes=random.randint(40, 75))
         if last_post_time is None:
-            publish_date = datetime.datetime.now() + delta_published_time
+            publish_time = datetime.datetime.now() + delta_published_time
         else:
-            publish_date = last_post_time + delta_published_time
-        if 23 > publish_date.hour > 9:
-            publish_date_unix = int(time.mktime((publish_date.timetuple())))
+            publish_time = last_post_time + delta_published_time
+        if 23 > publish_time.hour > 9:
+            publish_time_unix = int(time.mktime((publish_time.timetuple())))
         else:
-            if publish_date.hour == 23:
-                publish_date = publish_date + datetime.timedelta(days=1)
-            first_time = datetime.time(hour=9, minute=random.randint(0, 59))
-            publish_date = datetime.datetime.combine(publish_date, first_time)
-            publish_date_unix = int(time.mktime((publish_date.timetuple())))
+            if publish_time.hour == 23:
+                publish_time = publish_time + datetime.timedelta(days=1)
+            first_time = datetime.time(hour=9, minute=random.randint(0, 39))
+            publish_time = datetime.datetime.combine(publish_time, first_time)
+            publish_time_unix = int(time.mktime((publish_time.timetuple())))
+        publish_date_human = publish_time.date()
 
-        return publish_date_unix
+        return {"publish_time_unix": publish_time_unix, "publish_date_human": publish_date_human}
 
     def post_publish(self, atcms, publish_date_unix):
         self.vk_methods.wall.post(owner_id=-self.group_id,
@@ -69,8 +71,18 @@ class VkWorker(Thread):
                                   publish_date=publish_date_unix
                                   )
 
-    def queue_picker(self):
-        post_to_public = self.db_conn.post_getter({"published": False})
+    def queue_picker(self, publish_date):
+        blog_posted_daily_counter = defaultdict
+        all_public_daily = self.db_conn.daily_posts_published(publish_date)
+        if all_public_daily:
+            blog_posted_daily_counter += [post["blog_name"] for post in all_public_daily]
+            blog_name_to_public = min(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
+            searching_post = {"published": False, "blog_name": blog_name_to_public}
+        else:
+            searching_post = {"published": False}
+
+        post_to_public = self.db_conn.post_getter(searching_post)
+
         if post_to_public is None:
             self.empty_picker_queue.put(True)
 
@@ -91,20 +103,22 @@ class VkWorker(Thread):
         while True:
             try:
                 post_data = False
+                publish_date = self.calc_publish_date()
                 print("берем пост из очереди")
                 while post_data is False:
-                    post_data = self.queue_picker()
+                    post_data = self.queue_picker(publish_date["publish_date_human"])
                 print("загружаем фото")
                 uploaded_photo = self.server_upload(post_data["photo_path"])
                 print(f"загруженные фото {uploaded_photo}")
                 print("make attacms")
                 atcms = self.make_attachments(uploaded_photo)
-                publish_date_unix = self.calc_publish_date()
                 print("публикуем пост")
-                self.post_publish(atcms, publish_date_unix)
-                self.db_conn.post_updater(post_data["post_id"])
-                time.sleep(3600)
+                self.post_publish(atcms, publish_date["publish_time_unix"])
+                self.db_conn.post_updater(post_data["post_id"], publish_date["publish_date_human"])
+                time.sleep(1800)
             except BaseException as ex:
                 print(f"Ошибка в треде vk_workers {ex}")
                 print("Пропускаем пост")
-                self.db_conn.post_updater(post_data["post_id"], status="Fail")
+                self.db_conn.post_updater(post_data["post_id"],
+                                          publish_date["publish_date_human"],
+                                          status="Fail")

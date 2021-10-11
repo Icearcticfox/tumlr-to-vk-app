@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import datetime
 
 
 class DbConn:
@@ -18,6 +19,7 @@ class DbConn:
 
     def post_adder(self, blog_name, post_id, photos):
         published = False
+        #datetime.datetime.now()
         if not self.tumblr_posts_collection.find_one({"post_id": post_id}):
             try:
                 if [photo for photo in photos if photo.split(".")[-1] in ["gif"]]:
@@ -31,8 +33,13 @@ class DbConn:
         post = self.tumblr_posts_collection.find_one(view_)
         return post
 
-    def post_updater(self, post_id, status=True):
-        self.tumblr_posts_collection.update_one({"post_id": post_id}, {"$set": {"published": status}})
+    def daily_posts_published(self, publish_date):
+        all_public_daily = self.tumblr_posts_collection.find({"published": True, "publish_date": publish_date}).sort({'_id': -1}).limit()
+        return all_public_daily
+
+    def post_updater(self, post_id, publish_date, status=True):
+        self.tumblr_posts_collection.update_one({"post_id": post_id}, {"$set": {"published": status}},
+                                                {"publish_date": publish_date})
 
         # Provide the mongodb atlas url to connect python to mongodb using pymongo
         #CONNECTION_STRING = "mongodb+srv://<username>:<password>@<cluster-name>.mongodb.net/myFirstDatabase"

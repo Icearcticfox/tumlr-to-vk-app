@@ -74,8 +74,8 @@ class TumblrWorker(Thread):
         """Получение постов с дашборда"""
 
         if self.empty_picker_queue.get():
-            self.time_offset += 2
-        dashboard = self.client.dashboard(limit=20, offset=self.time_offset)
+            self.time_offset += 1
+        dashboard = self.client.dashboard(limit=5, offset=self.time_offset)
 
         if self.dashboard_parser(dashboard):
             self.time_offset = 0
