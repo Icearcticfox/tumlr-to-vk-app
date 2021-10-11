@@ -45,7 +45,7 @@ class TumblrWorker(Thread):
             return True
 
     def photo_post_parse(self, post) -> list:
-        photo_url_list = [photo['original_size']['url'].split('/')[-1] for photo in post["photos"]]
+        photo_url_list = [photo['original_size']['url'] for photo in post["photos"]]
         return photo_url_list
 
     def text_post_parse(self, post) -> list:
