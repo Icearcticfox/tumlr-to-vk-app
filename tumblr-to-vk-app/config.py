@@ -4,6 +4,8 @@ import os
 class Config:
 
     def __init__(self):
+        self.db_user = os.getenv("DB_USER")
+        self.db_password = os.getenv("DB_PASSWORD")
         self.script_settings = None
         self.connection_string = os.getenv("CONNECTION_STRING")
         self.app_id = int(os.getenv("APP_ID"))

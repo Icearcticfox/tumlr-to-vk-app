@@ -3,10 +3,12 @@ from pymongo import MongoClient
 
 class DbConn:
 
-    def __init__(self, db_name=None, collection_name=None, connection_string=None):
+    def __init__(self, db_user, db_password, db_name=None, collection_name=None, connection_string=None):
+        self.db_user = db_user
+        self.db_password = db_password
         self.CONNECTION_STRING = connection_string
         self.CONNECTION_STRING = "mongo:27017"
-        self.client = MongoClient(self.CONNECTION_STRING)
+        self.client = MongoClient(f"mongodb://{self.db_user}:{self.db_password}@{self.CONNECTION_STRING}")
         if db_name is None:
             db_name = "tumblr"
         self.tumblr_db = self.client.get_database(db_name)
