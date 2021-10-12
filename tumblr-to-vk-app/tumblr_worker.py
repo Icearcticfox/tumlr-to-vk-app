@@ -64,6 +64,7 @@ class TumblrWorker(Thread):
 
             blog_name = post["blog_name"]
             post_id = post["id"]
+            print(f"image_list ********* {image_list}")
             if self.dashboard_post_image_saver(image_list, blog_name, post_id):
                 was_added = True
 
