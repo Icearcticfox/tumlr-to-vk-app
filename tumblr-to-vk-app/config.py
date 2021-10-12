@@ -1,9 +1,12 @@
 import os
+import configobj
 
 
 class Config:
 
     def __init__(self):
+        # config = configobj.ConfigObj('env.b')
+        # os.getenv()
         self.db_user = os.getenv("DB_USER")
         self.db_password = os.getenv("DB_PASSWORD")
         self.script_settings = None

@@ -31,56 +31,58 @@ class VkWorker(Thread):
         last_time = max([post_time["date"] for post_time in postponed_posts["items"]])
         return datetime.datetime.fromtimestamp(last_time)
 
-    # def server_upload(self, photo_path):
-    #     dict_uploaded_files = {"gif": [], "photo": []}
-    #     try:
-    #         for photo in photo_path:
-    #             photo_type = photo.split(".")[-1]
-    #             if photo_type in ["gif"]:
-    #                 vk_server_gif = self.upload.photo_wall(photos=photo_path,
-    #                                                        )
-    #                 dict_uploaded_files["gif"].append(vk_server_gif)
-    #             elif photo_type in ["jpg", "png", "jpeg"]:
-    #                 vk_server_photo = self.upload.photo_wall(photos=photo_path,
-    #                                                          group_id=self.group_id
-    #                                                          )
-    #                 dict_uploaded_files["photo"].append(vk_server_photo)
-    #     except BaseException as ex:
-    #         raise f"Ошибка при загрузке фото {ex}"
-    #
-    #     return dict_uploaded_files
-
     def server_upload(self, photo_path):
+        dict_uploaded_files = {}
+        gif_to_upload = []
+        photo_to_upload = []
         try:
-            # for photo in
-            # vk_server_gif = self.upload.photo_wall(photos=photo_path,
-            #                                        )
-            vk_server_photo = self.upload.photo_wall(photos=photo_path,
-                                                     group_id=self.group_id
-                                                     )
+            for photo in photo_path:
+                photo_type = photo.split(".")[-1]
+                if photo_type in ["gif"]:
+                    gif_to_upload.append(photo)
+                elif photo_type in ["jpg", "png", "jpeg"]:
+                    photo_to_upload.append(photo)
+
+            dict_uploaded_files["gif"] = self.upload.photo_wall(photos=gif_to_upload)
+            dict_uploaded_files["photo"] = self.upload.photo_wall(photos=photo_to_upload,
+                                                                  group_id=self.group_id
+                                                                  )
         except BaseException as ex:
             raise f"Ошибка при загрузке фото {ex}"
 
-        return vk_server_photo
+        return dict_uploaded_files
 
-    # def make_attachments(self, dict_uploaded_files):
-    #     atcms_gif = []
-    #     atcms_photo = []
-    #     if dict_uploaded_files["gif"]:
-    #         file_type = "gif"
-    #         atcms_gif = [f"{file_type}{str(photo['owner_id'])}_{str(photo['id'])}" for photo in
-    #                  dict_uploaded_files[file_type]]
-    #     elif dict_uploaded_files["photo"]:
-    #         file_type = "photo"
-    #         atcms_photo = [f"{file_type}{str(photo['owner_id'])}_{str(photo['id'])}" for photo in
-    #                  dict_uploaded_files[file_type]]
-    #     atcms_all = atcms_gif + atcms_photo
+    # def server_upload(self, photo_path):
+    #     try:
+    #         # for photo in
+    #         # vk_server_gif = self.upload.photo_wall(photos=photo_path,
+    #         #                                        )
+    #         vk_server_photo = self.upload.photo_wall(photos=photo_path,
+    #                                                  group_id=self.group_id
+    #                                                  )
+    #     except BaseException as ex:
+    #         raise f"Ошибка при загрузке фото {ex}"
     #
-    #     return ','.join(atcms_all)
+    #     return vk_server_photo
 
-    def make_attachments(self, uploaded_photo):
-        atcms = [f"photo{str(photo['owner_id'])}_{str(photo['id'])}" for photo in uploaded_photo]
-        return ','.join(atcms)
+    def make_attachments(self, dict_uploaded_files):
+        atcms_gif = []
+        atcms_photo = []
+        if dict_uploaded_files["gif"]:
+            file_type = "gif"
+            atcms_gif = [f"{file_type}{str(photo['owner_id'])}_{str(photo['id'])}" for photo in
+                         dict_uploaded_files[file_type]]
+        elif dict_uploaded_files["photo"]:
+            file_type = "photo"
+            atcms_photo = [f"{file_type}{str(photo['owner_id'])}_{str(photo['id'])}" for photo in
+                           dict_uploaded_files[file_type]]
+        atcms_all = atcms_gif + atcms_photo
+
+        return ','.join(atcms_all)
+
+    # def make_attachments(self, uploaded_photo):
+    #     atcms = [f"photo{str(photo['owner_id'])}_{str(photo['id'])}" for photo in uploaded_photo]
+    #     return ','.join(atcms)
 
     def calc_publish_date(self):
         last_post_time = self.get_last_postponed_time()
@@ -101,11 +103,12 @@ class VkWorker(Thread):
 
         return {"publish_time_unix": publish_time_unix, "publish_date_human": publish_date_human}
 
-    def post_publish(self, atcms, publish_date_unix):
+    def post_publish(self, atcms, publish_date_unix, source_url):
         self.vk_methods.wall.post(owner_id=-self.group_id,
                                   from_group=True,
                                   attachments=atcms,
-                                  publish_date=publish_date_unix
+                                  publish_date=publish_date_unix,
+                                  copyright=source_url
                                   )
 
     def queue_picker(self):
@@ -138,27 +141,31 @@ class VkWorker(Thread):
             photo_path.append(photo)
         print(photo_path)
 
-        return {"post_id": post_to_public["post_id"], "photo_path": photo_path}
+        return {"post_id": post_to_public["post_id"],
+                "photo_path": photo_path,
+                "source_url": post_to_public["source_url"]}
 
     def start(self):
         while True:
             try:
                 post_data = False
+                source_url = None
                 publish_date = self.calc_publish_date()
                 print("берем пост из очереди")
                 while post_data is False:
                     post_data = self.queue_picker()
+                source_url = post_data["source_url"]
                 print("загружаем фото")
-                uploaded_photo = self.server_upload(post_data["photo_path"])
-                print(f"загруженные фото {uploaded_photo}")
-                print("make attacms")
-                atcms = self.make_attachments(uploaded_photo)
-                # dict_uploaded_files = self.server_upload(post_data["photo_path"])
-                # print(f"загруженные фото {dict_uploaded_files}")
+                # uploaded_photo = self.server_upload(post_data["photo_path"])
+                # print(f"загруженные фото {uploaded_photo}")
                 # print("make attacms")
-                # atcms = self.make_attachments(dict_uploaded_files)
+                # atcms = self.make_attachments(uploaded_photo)
+                dict_uploaded_files = self.server_upload(post_data["photo_path"])
+                print(f"загруженные фото {dict_uploaded_files}")
+                print("make attacms")
+                atcms = self.make_attachments(dict_uploaded_files)
                 print("публикуем пост")
-                self.post_publish(atcms, publish_date["publish_time_unix"])
+                self.post_publish(atcms, publish_date["publish_time_unix"], source_url)
                 self.db_conn.post_updater(post_data["post_id"], publish_date["publish_date_human"])
                 time.sleep(1800)
             except BaseException as ex:

@@ -8,7 +8,9 @@ if __name__ == "__main__":
     print("get configs")
     config = Config()
     print("start db init")
-    db_worker = DbConn(db_user=config.db_user, db_password=config.db_password, connection_string=config.connection_string)
+    db_worker = DbConn(db_user=config.db_user,
+                       db_password=config.db_password,
+                       connection_string=config.connection_string)
     print(f"db init success {db_worker.tumblr_db}")
     empty_picker_queue = queue.Queue()
     tumblr_worker = TumblrWorker(db_worker,

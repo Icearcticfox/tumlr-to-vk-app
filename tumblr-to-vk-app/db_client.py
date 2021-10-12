@@ -6,8 +6,9 @@ class DbConn:
     def __init__(self, db_user, db_password, db_name=None, collection_name=None, connection_string=None):
         self.db_user = db_user
         self.db_password = db_password
+        if connection_string is None:
+            connection_string = "mongo:27017"
         self.CONNECTION_STRING = connection_string
-        self.CONNECTION_STRING = "mongo:27017"
         self.client = MongoClient(f"mongodb://{self.db_user}:{self.db_password}@{self.CONNECTION_STRING}")
         if db_name is None:
             db_name = "tumblr"
@@ -18,16 +19,16 @@ class DbConn:
         self.tumblr_posts_collection = self.tumblr_db.get_collection(collection_name)
         print(self.tumblr_posts_collection)
 
-    def post_adder(self, blog_name, post_id, photos):
+    def post_adder(self, blog_name, post_id, photos, post_url):
         published = False
-        #datetime.datetime.now()
         if not self.tumblr_posts_collection.find_one({"post_id": post_id}):
             try:
-                if [photo for photo in photos if photo.split(".")[-1] in ["gif"]]:
-                    print("Это гифка не публикуем")
-                    published = "Failed"
+                # if [photo for photo in photos if photo.split(".")[-1] in ["gif"]]:
+                #     print("Это гифка не публикуем")
+                #     published = "Failed"
                 self.tumblr_posts_collection.insert_one({"post_id": post_id, "published": published,
-                                                         "blog_name": blog_name, "photos": photos})
+                                                         "blog_name": blog_name, "photos": photos,
+                                                         "post_url": post_url})
             except Exception as ex:
                 print(ex)
 
