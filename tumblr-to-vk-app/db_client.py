@@ -22,6 +22,7 @@ class DbConn:
         if not self.tumblr_posts_collection.find_one({"post_id": post_id}):
             try:
                 if [photo for photo in photos if photo.split(".")[-1] in ["gif"]]:
+                    print("Это гифка не публикуем")
                     published = "Failed"
                 self.tumblr_posts_collection.insert_one({"post_id": post_id, "published": published,
                                                          "blog_name": blog_name, "photos": photos})

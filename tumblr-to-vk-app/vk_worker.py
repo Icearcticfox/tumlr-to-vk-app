@@ -122,4 +122,4 @@ class VkWorker(Thread):
                 print("Пропускаем пост")
                 self.db_conn.post_updater(post_data["post_id"],
                                           publish_date["publish_date_human"],
-                                          status="Fail")
+                                          status="Failed")
