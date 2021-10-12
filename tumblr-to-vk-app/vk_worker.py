@@ -33,6 +33,9 @@ class VkWorker(Thread):
 
     def server_upload(self, photo_path):
         try:
+            # for photo in
+            # vk_server_gif = self.upload.photo_wall(photos=photo_path,
+            #                                        )
             vk_server_photo = self.upload.photo_wall(photos=photo_path,
                                                      group_id=self.group_id
                                                      )
@@ -71,16 +74,18 @@ class VkWorker(Thread):
                                   publish_date=publish_date_unix
                                   )
 
-    def queue_picker(self, publish_date):
+    def queue_picker(self):
         blog_posted_daily_counter = defaultdict(int)
-        all_public_daily = [doc for doc in self.db_conn.daily_posts_published(publish_date)]
-        if all_public_daily:
-            for post in all_public_daily:
-                blog_posted_daily_counter[post["blog_name"]] += 1
-            blog_name_to_public = min(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
-            searching_post = {"published": False, "blog_name": blog_name_to_public}
+        posts_queue = [doc for doc in self.db_conn.daily_posts_queue_publish()]
+        for post in posts_queue:
+            blog_posted_daily_counter[post["blog_name"]] += 1
+        dice = random.randint(1, 2)
+        if dice == 1:
+            randomize_cho = max
         else:
-            searching_post = {"published": False}
+            randomize_cho = min
+        blog_name_to_public = randomize_cho(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
+        searching_post = {"published": False, "blog_name": blog_name_to_public}
 
         post_to_public = self.db_conn.post_getter(searching_post)
 
@@ -107,7 +112,7 @@ class VkWorker(Thread):
                 publish_date = self.calc_publish_date()
                 print("берем пост из очереди")
                 while post_data is False:
-                    post_data = self.queue_picker(publish_date["publish_date_human"])
+                    post_data = self.queue_picker()
                 print("загружаем фото")
                 uploaded_photo = self.server_upload(post_data["photo_path"])
                 print(f"загруженные фото {uploaded_photo}")
