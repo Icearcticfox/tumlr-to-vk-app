@@ -27,7 +27,7 @@ class TumblrWorker(Thread):
         if self.files_folder is None:
             self.files_folder = "."
 
-    def dashboard_post_image_saver(self, image_list, blog_name, post_id, post_url):
+    def dashboard_post_image_saver(self, image_list, blog_name, post_id, source_url):
         if self.db_client.post_getter({"post_id": post_id}) is None:
             photos = []
             if not os.path.isdir(f"{self.files_folder}/{blog_name}"):
@@ -40,7 +40,7 @@ class TumblrWorker(Thread):
                                     f"{self.files_folder}/{blog_name}/{post_id}/"
                                     f"{photo_name}")
                 photos.append(photo_name)
-            self.db_client.post_adder(blog_name, post_id, photos, post_url)
+            self.db_client.post_adder(blog_name, post_id, photos, source_url)
 
             return True
 
@@ -64,9 +64,9 @@ class TumblrWorker(Thread):
 
             blog_name = post["blog_name"]
             post_id = post["id"]
-            post_url = post["post_url"]
+            source_url = post["post_url"]
             print(f"image_list ********* {image_list}")
-            if self.dashboard_post_image_saver(image_list, blog_name, post_id, post_url):
+            if self.dashboard_post_image_saver(image_list, blog_name, post_id, source_url):
                 was_added = True
 
         return was_added

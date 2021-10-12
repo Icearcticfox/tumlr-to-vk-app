@@ -22,7 +22,12 @@ if __name__ == "__main__":
                                  config.files_folder)
     tumblr_worker.start()
     print(f"tumblr_worker started")
-    vk_worker = VkWorker(config.group_id, config.user_access_token, db_worker, empty_picker_queue, config.files_folder)
+    vk_worker = VkWorker(config.group_id,
+                         config.user_access_token,
+                         db_worker,
+                         empty_picker_queue,
+                         config.files_folder,
+                         config.user_id)
     print(f"vk_worker starting")
     vk_worker.start()
     print(f"vk_worker started")

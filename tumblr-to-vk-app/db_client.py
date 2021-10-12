@@ -19,7 +19,7 @@ class DbConn:
         self.tumblr_posts_collection = self.tumblr_db.get_collection(collection_name)
         print(self.tumblr_posts_collection)
 
-    def post_adder(self, blog_name, post_id, photos, post_url):
+    def post_adder(self, blog_name, post_id, photos, source_url):
         published = False
         if not self.tumblr_posts_collection.find_one({"post_id": post_id}):
             try:
@@ -28,7 +28,7 @@ class DbConn:
                 #     published = "Failed"
                 self.tumblr_posts_collection.insert_one({"post_id": post_id, "published": published,
                                                          "blog_name": blog_name, "photos": photos,
-                                                         "source_url": post_url})
+                                                         "source_url": source_url})
             except Exception as ex:
                 print(ex)
 

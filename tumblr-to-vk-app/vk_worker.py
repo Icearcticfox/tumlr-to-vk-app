@@ -7,7 +7,7 @@ from collections import defaultdict
 
 
 class VkWorker(Thread):
-    def __init__(self, group_id, user_access_token, db_conn, empty_picker_queue, files_folder):
+    def __init__(self, group_id, user_access_token, db_conn, empty_picker_queue, files_folder, user_id):
         super().__init__()
         self.group_id = group_id
         self.db_conn = db_conn
@@ -16,6 +16,7 @@ class VkWorker(Thread):
         self.upload = vk_api.VkUpload(vk_session)
         self.empty_picker_queue = empty_picker_queue
         self.files_folder = files_folder
+        self.user_id = user_id
 
     def get_last_postponed_time(self):
         # ограничение по постам
@@ -35,21 +36,23 @@ class VkWorker(Thread):
         dict_uploaded_files = {}
         gif_to_upload = []
         photo_to_upload = []
-        try:
-            for photo in photo_path:
-                photo_type = photo.split(".")[-1]
-                if photo_type in ["gif"]:
-                    gif_to_upload.append(photo)
-                elif photo_type in ["jpg", "png", "jpeg"]:
-                    photo_to_upload.append(photo)
+        for photo in photo_path:
+            photo_type = photo.split(".")[-1]
+            if photo_type in ["gif"]:
+                gif_to_upload.append(photo)
+            elif photo_type in ["jpg", "png", "jpeg"]:
+                photo_to_upload.append(photo)
 
-            dict_uploaded_files["gif"] = self.upload.photo_wall(photos=gif_to_upload)
+        print(f"gif_to_upload {gif_to_upload}\n"
+              f" photo_to_upload {photo_to_upload}")
+        if gif_to_upload:
+            print("это гифка")
+            dict_uploaded_files["gif"] = self.upload.document(doc=gif_to_upload)
+        elif photo_to_upload:
             dict_uploaded_files["photo"] = self.upload.photo_wall(photos=photo_to_upload,
-                                                                  group_id=self.group_id
-                                                                  )
-        except BaseException as ex:
-            raise f"Ошибка при загрузке фото {ex}"
-
+                                                              group_id=self.group_id
+                                                              )
+        print(f"dict_uploaded_files -------- {dict_uploaded_files}")
         return dict_uploaded_files
 
     # def server_upload(self, photo_path):
@@ -68,15 +71,16 @@ class VkWorker(Thread):
     def make_attachments(self, dict_uploaded_files):
         atcms_gif = []
         atcms_photo = []
-        if dict_uploaded_files["gif"]:
-            file_type = "gif"
-            atcms_gif = [f"{file_type}{str(photo['owner_id'])}_{str(photo['id'])}" for photo in
-                         dict_uploaded_files[file_type]]
-        elif dict_uploaded_files["photo"]:
+        if "gif" in dict_uploaded_files:
+            doc = dict_uploaded_files["gif"]["doc"]
+            file_type = "doc"
+            atcms_gif = [f"{file_type}{str(doc['owner_id'])}_{str(doc['id'])}"]
+        elif "photo" in dict_uploaded_files:
             file_type = "photo"
             atcms_photo = [f"{file_type}{str(photo['owner_id'])}_{str(photo['id'])}" for photo in
-                           dict_uploaded_files[file_type]]
+                           dict_uploaded_files["photo"]]
         atcms_all = atcms_gif + atcms_photo
+        print(f"atcms_all {atcms_all}")
 
         return ','.join(atcms_all)
 
@@ -104,19 +108,28 @@ class VkWorker(Thread):
         return {"publish_time_unix": publish_time_unix, "publish_date_human": publish_date_human}
 
     def post_publish(self, atcms, publish_date_unix, blog_name, source_url):
+        #print(f"atcms {atcms}")
+        #is_gif = [atc for atc in atcms if "doc" in atc]
+        #print(f"is_gif {is_gif}")
+        # if "doc" in atcms:
+        #     owner_id = self.user_id
+        # else:
+        #     owner_id = -self.group_id
+        owner_id = -self.group_id
+        print(f"owner_id - {owner_id}")
         if blog_name in ["dankmemeuniversity"]:
-            self.vk_methods.wall.post(owner_id=-self.group_id,
+            print(self.vk_methods.wall.post(owner_id=owner_id,
                                       from_group=True,
                                       attachments=atcms,
                                       publish_date=publish_date_unix,
                                       copyright=source_url
-                                      )
+                                      ))
         else:
-            self.vk_methods.wall.post(owner_id=-self.group_id,
+            print(self.vk_methods.wall.post(owner_id=owner_id,
                                       from_group=True,
                                       attachments=atcms,
                                       publish_date=publish_date_unix,
-                                      )
+                                      ))
 
     def queue_picker(self):
         blog_posted_daily_counter = defaultdict(int)
@@ -174,7 +187,10 @@ class VkWorker(Thread):
                 atcms = self.make_attachments(dict_uploaded_files)
                 print("публикуем пост")
                 self.post_publish(atcms, publish_date["publish_time_unix"], blog_name, source_url)
+                print("Пост опубликован")
+                print("апдейт записи в базе")
                 self.db_conn.post_updater(post_data["post_id"], publish_date["publish_date_human"])
+                print("ожидаем след поста")
                 time.sleep(1800)
             except BaseException as ex:
                 print(f"Ошибка в треде vk_workers {ex}")
