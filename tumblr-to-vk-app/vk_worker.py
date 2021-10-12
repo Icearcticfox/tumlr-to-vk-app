@@ -50,23 +50,9 @@ class VkWorker(Thread):
             dict_uploaded_files["gif"] = self.upload.document(doc=gif_to_upload)
         elif photo_to_upload:
             dict_uploaded_files["photo"] = self.upload.photo_wall(photos=photo_to_upload,
-                                                              group_id=self.group_id
-                                                              )
-        print(f"dict_uploaded_files -------- {dict_uploaded_files}")
+                                                                  group_id=self.group_id
+                                                                  )
         return dict_uploaded_files
-
-    # def server_upload(self, photo_path):
-    #     try:
-    #         # for photo in
-    #         # vk_server_gif = self.upload.photo_wall(photos=photo_path,
-    #         #                                        )
-    #         vk_server_photo = self.upload.photo_wall(photos=photo_path,
-    #                                                  group_id=self.group_id
-    #                                                  )
-    #     except BaseException as ex:
-    #         raise f"Ошибка при загрузке фото {ex}"
-    #
-    #     return vk_server_photo
 
     def make_attachments(self, dict_uploaded_files):
         atcms_gif = []
@@ -83,10 +69,6 @@ class VkWorker(Thread):
         print(f"atcms_all {atcms_all}")
 
         return ','.join(atcms_all)
-
-    # def make_attachments(self, uploaded_photo):
-    #     atcms = [f"photo{str(photo['owner_id'])}_{str(photo['id'])}" for photo in uploaded_photo]
-    #     return ','.join(atcms)
 
     def calc_publish_date(self):
         last_post_time = self.get_last_postponed_time()
@@ -108,40 +90,32 @@ class VkWorker(Thread):
         return {"publish_time_unix": publish_time_unix, "publish_date_human": publish_date_human}
 
     def post_publish(self, atcms, publish_date_unix, blog_name, source_url):
-        #print(f"atcms {atcms}")
-        #is_gif = [atc for atc in atcms if "doc" in atc]
-        #print(f"is_gif {is_gif}")
-        # if "doc" in atcms:
-        #     owner_id = self.user_id
-        # else:
-        #     owner_id = -self.group_id
         owner_id = -self.group_id
-        print(f"owner_id - {owner_id}")
         if blog_name in ["dankmemeuniversity"]:
-            print(self.vk_methods.wall.post(owner_id=owner_id,
+            self.vk_methods.wall.post(owner_id=owner_id,
                                       from_group=True,
                                       attachments=atcms,
                                       publish_date=publish_date_unix,
                                       copyright=source_url
-                                      ))
+                                      )
         else:
-            print(self.vk_methods.wall.post(owner_id=owner_id,
+            self.vk_methods.wall.post(owner_id=owner_id,
                                       from_group=True,
                                       attachments=atcms,
                                       publish_date=publish_date_unix,
-                                      ))
+                                      )
 
     def queue_picker(self):
         blog_posted_daily_counter = defaultdict(int)
         posts_queue = [doc for doc in self.db_conn.daily_posts_queue_publish()]
 
         if not posts_queue:
-            self.empty_picker_queue.put(True)
-
+            print("Нет постов для публикации =(")
             return False
 
         for post in posts_queue:
             blog_posted_daily_counter[post["blog_name"]] += 1
+            print(f"Посты ожидающие публикации {blog_posted_daily_counter}")
         dice = random.randint(1, 2)
         if dice == 1:
             randomize_cho = max
@@ -177,10 +151,6 @@ class VkWorker(Thread):
                 source_url = post_data["source_url"]
                 blog_name = post_data["blog_name"]
                 print("загружаем фото")
-                # uploaded_photo = self.server_upload(post_data["photo_path"])
-                # print(f"загруженные фото {uploaded_photo}")
-                # print("make attacms")
-                # atcms = self.make_attachments(uploaded_photo)
                 dict_uploaded_files = self.server_upload(post_data["photo_path"])
                 print(f"загруженные фото {dict_uploaded_files}")
                 print("make attacms")
@@ -188,10 +158,9 @@ class VkWorker(Thread):
                 print("публикуем пост")
                 self.post_publish(atcms, publish_date["publish_time_unix"], blog_name, source_url)
                 print("Пост опубликован")
-                print("апдейт записи в базе")
                 self.db_conn.post_updater(post_data["post_id"], publish_date["publish_date_human"])
                 print("ожидаем след поста")
-                time.sleep(1800)
+                time.sleep(3600)
             except BaseException as ex:
                 print(f"Ошибка в треде vk_workers {ex}")
                 print("Пропускаем пост")

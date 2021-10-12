@@ -49,8 +49,13 @@ class TumblrWorker(Thread):
         return photo_url_list
 
     def text_post_parse(self, post) -> list:
-        photo_url_list = [image_url for image_url in post["body"].split("\"") if "https" in image_url]
+        photo_url_list = [image_url for image_url in post["body"].split("\"")
+                          if image_url.split(".")[-1] in ["png", "jpg", "jpeg", "gif"]]
         return photo_url_list
+
+    def video_post_parse(self, post) -> list:
+        video_url = [post["video_url"]]
+        return video_url
 
     def dashboard_parser(self, dashboard):
         was_added = False
@@ -59,14 +64,17 @@ class TumblrWorker(Thread):
                 image_list = self.photo_post_parse(post)
             elif post["type"] == "text":
                 image_list = self.text_post_parse(post)
+            elif post["type"] == "video":
+                continue
+                image_list = self.video_post_parse(post)
             else:
                 continue
 
             blog_name = post["blog_name"]
             post_id = post["id"]
             source_url = post["post_url"]
-            print(f"image_list ********* {image_list}")
             if self.dashboard_post_image_saver(image_list, blog_name, post_id, source_url):
+                print("was_added = True")
                 was_added = True
 
         return was_added
@@ -74,27 +82,17 @@ class TumblrWorker(Thread):
     def dashboard_post_getter(self):
 
         """Получение постов с дашборда"""
+        while True:
+            print(f"time_offset {self.time_offset}")
+            dashboard = self.client.dashboard(limit=20, offset=self.time_offset)
 
-        if self.empty_picker_queue.get():
-            self.time_offset += 1
-        dashboard = self.client.dashboard(limit=5, offset=self.time_offset)
-
-        if self.dashboard_parser(dashboard):
-            self.time_offset = 0
-            return True
-
-    # def tag_image_getter(self):
-    #
-    #     """Получение постов по тегу"""
-    #
-    #     tags = self.client.tagged(tag="sweet")
-    #     for post in tags:
-    #         if post["type"] == "photo":
-    #             if not os.path.isdir(f"./{post['blog_name']}"):
-    #                 os.mkdir(f"{self.files_folder}/{post['blog_name']}")
-    #             for photo in post["photos"]:
-    #                 request.urlretrieve(f'{photo["original_size"]["url"]}',
-    #                                     f'{self.files_folder}/{post["blog_name"]}/{photo["original_size"]["url"].split("/")[6]}')
+            if self.dashboard_parser(dashboard):
+                self.time_offset = 0
+                break
+            else:
+                self.time_offset += 20
+            time.sleep(20)
+        return True
 
     def run(self):
         while True:
