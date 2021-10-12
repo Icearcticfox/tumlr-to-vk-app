@@ -28,7 +28,7 @@ class DbConn:
                 #     published = "Failed"
                 self.tumblr_posts_collection.insert_one({"post_id": post_id, "published": published,
                                                          "blog_name": blog_name, "photos": photos,
-                                                         "post_url": post_url})
+                                                         "source_url": post_url})
             except Exception as ex:
                 print(ex)
 
