@@ -103,13 +103,20 @@ class VkWorker(Thread):
 
         return {"publish_time_unix": publish_time_unix, "publish_date_human": publish_date_human}
 
-    def post_publish(self, atcms, publish_date_unix, source_url):
-        self.vk_methods.wall.post(owner_id=-self.group_id,
-                                  from_group=True,
-                                  attachments=atcms,
-                                  publish_date=publish_date_unix,
-                                  copyright=source_url
-                                  )
+    def post_publish(self, atcms, publish_date_unix, blog_name, source_url):
+        if blog_name in ["dankmemeuniversity"]:
+            self.vk_methods.wall.post(owner_id=-self.group_id,
+                                      from_group=True,
+                                      attachments=atcms,
+                                      publish_date=publish_date_unix,
+                                      copyright=source_url
+                                      )
+        else:
+            self.vk_methods.wall.post(owner_id=-self.group_id,
+                                      from_group=True,
+                                      attachments=atcms,
+                                      publish_date=publish_date_unix,
+                                      )
 
     def queue_picker(self):
         blog_posted_daily_counter = defaultdict(int)
@@ -143,18 +150,19 @@ class VkWorker(Thread):
 
         return {"post_id": post_to_public["post_id"],
                 "photo_path": photo_path,
-                "source_url": post_to_public["source_url"]}
+                "source_url": post_to_public["source_url"],
+                "blog_name": post_to_public["blog_name"]}
 
     def start(self):
         while True:
             try:
                 post_data = False
-                source_url = None
                 publish_date = self.calc_publish_date()
                 print("берем пост из очереди")
                 while post_data is False:
                     post_data = self.queue_picker()
                 source_url = post_data["source_url"]
+                blog_name = post_data["blog_name"]
                 print("загружаем фото")
                 # uploaded_photo = self.server_upload(post_data["photo_path"])
                 # print(f"загруженные фото {uploaded_photo}")
@@ -165,7 +173,7 @@ class VkWorker(Thread):
                 print("make attacms")
                 atcms = self.make_attachments(dict_uploaded_files)
                 print("публикуем пост")
-                self.post_publish(atcms, publish_date["publish_time_unix"], source_url)
+                self.post_publish(atcms, publish_date["publish_time_unix"], blog_name, source_url)
                 self.db_conn.post_updater(post_data["post_id"], publish_date["publish_date_human"])
                 time.sleep(1800)
             except BaseException as ex:
