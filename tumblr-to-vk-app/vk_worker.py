@@ -129,16 +129,14 @@ class VkWorker(Thread):
         # else:
         #     randomize_cho = min
 
-        post_to_public = {}
-        while not post_to_public:
-            blog_name_already_posted = min(all_posted_posts, key=all_posted_posts.get)
-            if blog_name_already_posted in blog_posted_daily_counter:
-                #blog_name_to_public = randomize_cho(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
-                #searching_post = {"published": False, "blog_name": blog_name_to_public}
-                searching_post = {"published": False, "blog_name": blog_name_already_posted}
-                post_to_public = self.db_conn.post_getter(searching_post)
-            else:
-                all_posted_posts.pop(blog_name_already_posted)
+        blog_name_already_posted_min = min(all_posted_posts, key=all_posted_posts.get)
+        if blog_name_already_posted_min in blog_posted_daily_counter:
+            #blog_name_to_public = randomize_cho(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
+            #searching_post = {"published": False, "blog_name": blog_name_to_public}
+            searching_post = {"published": False, "blog_name": blog_name_already_posted_min}
+        else:
+            searching_post = {"published": False}
+        post_to_public = self.db_conn.post_getter(searching_post)
 
         photo_path = []
         for img in post_to_public["photos"]:
