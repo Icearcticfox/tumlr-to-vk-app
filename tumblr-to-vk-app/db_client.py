@@ -36,9 +36,9 @@ class DbConn:
         post = self.tumblr_posts_collection.find_one(view_)
         return post
 
-    def daily_posts_queue_publish(self):
+    def daily_posts_queue_publish(self, published):
         #all_public_daily = self.tumblr_posts_collection.find({"published": True, "publish_date": publish_date})
-        all_public_daily = self.tumblr_posts_collection.find({"published": False})
+        all_public_daily = self.tumblr_posts_collection.find({"published": published})
         return all_public_daily
 
     def post_updater(self, post_id, publish_date, status=True):

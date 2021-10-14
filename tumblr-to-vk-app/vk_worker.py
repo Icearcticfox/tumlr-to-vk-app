@@ -107,24 +107,38 @@ class VkWorker(Thread):
 
     def queue_picker(self):
         blog_posted_daily_counter = defaultdict(int)
-        posts_queue = [doc for doc in self.db_conn.daily_posts_queue_publish()]
+        all_posted_posts = defaultdict(int)
+        posts_queue = [doc for doc in self.db_conn.daily_posts_queue_publish(False)]
 
         if not posts_queue:
             print("Нет постов для публикации =(")
             return False
 
+        posts_published = [doc for doc in self.db_conn.daily_posts_queue_publish(True)]
+        for post in posts_published:
+            all_posted_posts[post["blog_name"]] += 1
+        print(f"Опубликованные посты {all_posted_posts}")
+
         for post in posts_queue:
             blog_posted_daily_counter[post["blog_name"]] += 1
-            print(f"Посты ожидающие публикации {blog_posted_daily_counter}")
-        dice = random.randint(1, 2)
-        if dice == 1:
-            randomize_cho = max
-        else:
-            randomize_cho = min
-        blog_name_to_public = randomize_cho(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
-        searching_post = {"published": False, "blog_name": blog_name_to_public}
+        print(f"Посты ожидающие публикации {blog_posted_daily_counter}")
 
-        post_to_public = self.db_conn.post_getter(searching_post)
+        # dice = random.randint(1, 2)
+        # if dice == 1:
+        #     randomize_cho = max
+        # else:
+        #     randomize_cho = min
+
+        post_to_public = {}
+        while not post_to_public:
+            blog_name_already_posted = min(all_posted_posts, key=all_posted_posts.get)
+            if blog_name_already_posted in blog_posted_daily_counter:
+                #blog_name_to_public = randomize_cho(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
+                #searching_post = {"published": False, "blog_name": blog_name_to_public}
+                searching_post = {"published": False, "blog_name": blog_name_already_posted}
+                post_to_public = self.db_conn.post_getter(searching_post)
+            else:
+                all_posted_posts.pop(blog_name_already_posted)
 
         photo_path = []
         for img in post_to_public["photos"]:
