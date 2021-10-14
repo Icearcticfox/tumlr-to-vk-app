@@ -135,7 +135,9 @@ class VkWorker(Thread):
             #searching_post = {"published": False, "blog_name": blog_name_to_public}
             searching_post = {"published": False, "blog_name": blog_name_already_posted_min}
         else:
-            searching_post = {"published": False}
+            blog_name_wait_posts_min = min(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
+            searching_post = {"published": False, "blog_name": blog_name_wait_posts_min}
+
         post_to_public = self.db_conn.post_getter(searching_post)
 
         photo_path = []
