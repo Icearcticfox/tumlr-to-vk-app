@@ -172,7 +172,7 @@ class VkWorker(Thread):
                 print("Пост опубликован")
                 self.db_conn.post_updater(post_data["post_id"], publish_date["publish_date_human"])
                 print("ожидаем след поста")
-                time.sleep(3600)
+                time.sleep(2400)
             except BaseException as ex:
                 print(f"Ошибка в треде vk_workers {ex}")
                 print("Пропускаем пост")

@@ -84,13 +84,13 @@ class TumblrWorker(Thread):
         """Получение постов с дашборда"""
         while True:
             print(f"time_offset {self.time_offset}")
-            dashboard = self.client.dashboard(limit=20, offset=self.time_offset)
+            dashboard = self.client.dashboard(limit=10, offset=self.time_offset)
 
             if self.dashboard_parser(dashboard):
                 self.time_offset = 0
                 break
             else:
-                self.time_offset += 20
+                self.time_offset += 10
             time.sleep(20)
         return True
 
@@ -98,6 +98,6 @@ class TumblrWorker(Thread):
         while True:
             try:
                 self.dashboard_post_getter()
-                time.sleep(3600)
+                time.sleep(2400)
             except Exception as ex:
                 print(f"Ошибка в треде tumblr_workers {ex}")
