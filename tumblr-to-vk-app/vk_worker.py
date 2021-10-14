@@ -91,7 +91,7 @@ class VkWorker(Thread):
 
     def post_publish(self, atcms, publish_date_unix, blog_name, source_url):
         owner_id = -self.group_id
-        if blog_name in ["dankmemeuniversity"]:
+        if blog_name in ["dankmemeuniversity", "shitpostinguniverse"]:
             self.vk_methods.wall.post(owner_id=owner_id,
                                       from_group=True,
                                       attachments=atcms,

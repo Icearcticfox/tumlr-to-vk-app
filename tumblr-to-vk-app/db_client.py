@@ -1,3 +1,5 @@
+import datetime
+
 from pymongo import MongoClient
 
 
@@ -21,6 +23,7 @@ class DbConn:
 
     def post_adder(self, blog_name, post_id, photos, source_url):
         published = False
+        add_date = str(datetime.datetime.now().date())
         if not self.tumblr_posts_collection.find_one({"post_id": post_id}):
             try:
                 # if [photo for photo in photos if photo.split(".")[-1] in ["gif"]]:
@@ -28,7 +31,7 @@ class DbConn:
                 #     published = "Failed"
                 self.tumblr_posts_collection.insert_one({"post_id": post_id, "published": published,
                                                          "blog_name": blog_name, "photos": photos,
-                                                         "source_url": source_url})
+                                                         "source_url": source_url, "date_add": add_date})
             except Exception as ex:
                 print(ex)
 

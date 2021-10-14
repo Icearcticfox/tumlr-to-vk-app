@@ -30,7 +30,7 @@ compose-up:
     - docker-compose up -d --no-deps --build
   dependencies:
     - compose-down
-  when: manual
+#  when: manual
 
 
     #sudo docker run --name mongodb-tublr-posts -d --network overlay_network -p 27017:27017 -v /home/icefox/mongo_tublr_posts:/data/db mongo
