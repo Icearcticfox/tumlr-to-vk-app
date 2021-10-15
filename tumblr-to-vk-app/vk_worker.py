@@ -105,9 +105,21 @@ class VkWorker(Thread):
                                       publish_date=publish_date_unix,
                                       )
 
+    def make_search_by_blog_name(self, posted_posts_blog_name, awaiting_posts_blog_name):
+
+        for blog_name in awaiting_posts_blog_name:
+            if blog_name not in posted_posts_blog_name:
+                return {"published": False, "blog_name": blog_name}
+
+        blog_name_already_posted_min = min(posted_posts_blog_name, key=posted_posts_blog_name.get)
+        if blog_name_already_posted_min in awaiting_posts_blog_name:
+            return {"published": False, "blog_name": blog_name_already_posted_min}
+        else:
+            return {"published": False}
+
     def queue_picker(self):
-        blog_posted_daily_counter = defaultdict(int)
-        all_posted_posts = defaultdict(int)
+        awaiting_posts_blog_name = defaultdict(int)
+        posted_posts_blog_name = defaultdict(int)
         posts_queue = [doc for doc in self.db_conn.daily_posts_queue_publish(False)]
 
         if not posts_queue:
@@ -116,30 +128,17 @@ class VkWorker(Thread):
 
         posts_published = [doc for doc in self.db_conn.daily_posts_queue_publish(True)]
         for post in posts_published:
-            all_posted_posts[post["blog_name"]] += 1
-        print(f"Опубликованные посты {all_posted_posts}")
+            posted_posts_blog_name[post["blog_name"]] += 1
+        print(f"Опубликованные посты {posted_posts_blog_name}")
 
         for post in posts_queue:
-            blog_posted_daily_counter[post["blog_name"]] += 1
-        print(f"Посты ожидающие публикации {blog_posted_daily_counter}")
+            awaiting_posts_blog_name[post["blog_name"]] += 1
+        print(f"Посты ожидающие публикации {awaiting_posts_blog_name}")
 
-        # dice = random.randint(1, 2)
-        # if dice == 1:
-        #     randomize_cho = max
-        # else:
-        #     randomize_cho = min
-
-        blog_name_already_posted_min = min(all_posted_posts, key=all_posted_posts.get)
-        if blog_name_already_posted_min in blog_posted_daily_counter:
-            #blog_name_to_public = randomize_cho(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
-            #searching_post = {"published": False, "blog_name": blog_name_to_public}
-            searching_post = {"published": False, "blog_name": blog_name_already_posted_min}
-        else:
-            blog_name_wait_posts_min = min(blog_posted_daily_counter, key=blog_posted_daily_counter.get)
-            #searching_post = {"published": False, "blog_name": blog_name_wait_posts_min}
-            searching_post = {"published": False}
-
-        post_to_public = self.db_conn.post_getter(searching_post)
+        post_to_public = self.db_conn.post_getter(self.make_search_by_blog_name(
+            posted_posts_blog_name,
+            awaiting_posts_blog_name
+        ))
 
         photo_path = []
         for img in post_to_public["photos"]:
