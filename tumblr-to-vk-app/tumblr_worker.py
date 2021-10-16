@@ -8,7 +8,6 @@ from threading import Thread
 class TumblrWorker(Thread):
 
     def __init__(self, db_client,
-                 empty_picker_queue,
                  consumer_key,
                  consumer_secret,
                  oauth_token,
@@ -21,7 +20,6 @@ class TumblrWorker(Thread):
                                                 oauth_token=oauth_token,
                                                 oauth_secret=oauth_secret)
         self.db_client = db_client
-        self.empty_picker_queue = empty_picker_queue
         self.time_offset = 0
         self.files_folder = files_folder
         if self.files_folder is None:
