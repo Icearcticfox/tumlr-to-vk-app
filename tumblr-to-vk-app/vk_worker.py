@@ -18,8 +18,6 @@ class PostsPublisher:
         self.vk_methods = vk_session.get_api()
         self.user_id = user_id
         self.upload = vk_api.VkUpload(vk_session)
-        self.calc_publish_date()
-        self.publish_date = self.calc_publish_date()
         self.db_conn = db_conn
 
     def get_last_postponed_time(self):
@@ -98,6 +96,7 @@ class PostsPublisher:
         return ','.join(atcms_all)
 
     def post_publish(self, post_data):
+        publish_date = self.calc_publish_date()
         atcms = self.make_attachments(post_data["photo_path"])
         source_url = post_data["source_url"]
         blog_name = post_data["blog_name"]
@@ -106,15 +105,17 @@ class PostsPublisher:
             self.vk_methods.wall.post(owner_id=self.owner_id,
                                       from_group=True,
                                       attachments=atcms,
-                                      publish_date=self.publish_date["unix"],
+                                      publish_date=publish_date["unix"],
                                       copyright=source_url
                                       )
         else:
             self.vk_methods.wall.post(owner_id=self.owner_id,
                                       from_group=True,
                                       attachments=atcms,
-                                      publish_date=self.publish_date["unix"],
+                                      publish_date=publish_date["unix"],
                                       )
+
+        self.db_conn.post_updater(post_data["post_id"], publish_date["human"])
 
     def skip_post(self, post_data):
         self.db_conn.post_updater(post_data["post_id"],
