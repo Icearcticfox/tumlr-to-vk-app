@@ -44,7 +44,7 @@ class DbConn:
         all_public_daily = self.tumblr_posts_collection.find({"published": published})
         return all_public_daily
 
-    def post_updater(self, post_id, publish_date, status=True):
+    def post_updater(self, post_id, publish_date=None, status=True):
         self.tumblr_posts_collection.update_one({"post_id": post_id}, {"$set": {"published": status,
                                                 "publish_date": publish_date}})
 
