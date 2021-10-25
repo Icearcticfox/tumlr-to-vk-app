@@ -113,6 +113,7 @@ class PostsPublisher:
                                       from_group=True,
                                       attachments=atcms,
                                       publish_date=publish_date["unix"],
+                                      copyright=source_url
                                       )
 
         self.db_conn.post_updater(post_data["post_id"], publish_date["human"])
