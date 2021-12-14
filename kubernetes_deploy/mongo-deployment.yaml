@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (955b78124)
+  labels:
+    io.kompose.service: mongo
+  name: mongo
+  namespace: applications
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mongo
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (955b78124)
+      labels:
+        io.kompose.network/tumblr-app: "true"
+        io.kompose.service: mongo
+    spec:
+      containers:
+        - env:
+            - name: DB_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: DB_ADMIN_PASSWORD
+            - name: DB_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: DB_ADMIN_USER
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: DB_NAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: DB_PASSWORD
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: DB_USER
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_INITDB_ROOT_PASSWORD
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_INITDB_ROOT_USERNAME
+          image: mongo:4.4.9
+#          command:
+#            - /scripts/script.sh
+          name: mongo
+          ports:
+            - containerPort: 27017
+          resources: {}
+          volumeMounts:
+#            - mountPath: /docker-entrypoint-initdb.d
+#              name: mongo-claim0
+#              readOnly: false
+            - mountPath: /data/db
+              name: mongo-db-storage
+              readOnly: false
+            - name: mongo-config
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+#            - name: config
+#              mountPath: /scripts
+      restartPolicy: Always
+      volumes:
+        - name: mongo-db-storage
+          persistentVolumeClaim:
+            claimName: longhorn-mongo-pvc
+        - name: mongo-config
+          configMap:
+            name: mongo-config
+            defaultMode: 0755
+            items:
+              - key: script.sh
+                path: script.sh

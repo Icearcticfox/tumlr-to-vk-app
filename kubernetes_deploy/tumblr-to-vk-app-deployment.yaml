@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (955b78124)
+  labels:
+    io.kompose.service: tumblr-to-vk-app
+  name: tumblr-to-vk-app
+  namespace: applications
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: tumblr-to-vk-app
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (955b78124)
+      labels:
+        io.kompose.network/tumblr-app: "true"
+        io.kompose.service: tumblr-to-vk-app
+    spec:
+      containers:
+        - env:
+            - name: APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: APP_ID
+            - name: APP_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: APP_SECRET_KEY
+            - name: APP_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: APP_SERVICE_KEY
+            - name: CONNECTION_STRING
+              value: "mongo:27017"
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: DB_NAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: DB_PASSWORD
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: DB_USER
+            - name: FILES_FOLDER
+              value: "/var/posts"
+            - name: GROUP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: GROUP_ID
+            - name: GROUP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: GROUP_SECRET
+            - name: TUMBLR_CONSUMER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: TUMBLR_CONSUMER_KEY
+            - name: TUMBLR_CONSUMER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: TUMBLR_CONSUMER_SECRET
+            - name: TUMBLR_OAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: TUMBLR_OAUTH_SECRET
+            - name: TUMBLR_OAUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: TUMBLR_OAUTH_TOKEN
+            - name: USER_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: USER_ACCESS_TOKEN
+            - name: USER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: tumblr-secret
+                  key: USER_ID
+          image: icearcticfox/tumblr-to-vk-app:raspberry-0.1
+          name: tumblr-to-vk-app
+          resources: {}
+          volumeMounts:
+            - mountPath: /tumblr-to-vk-app
+              name: tumblr-storage
+              readOnly: false
+      restartPolicy: Always
+      volumes:
+        - name: tumblr-storage
+          persistentVolumeClaim:
+            claimName: longhorn-tumblr-pvc
+
+status: {}
