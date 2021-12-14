@@ -63,6 +63,7 @@ class TumblrWorker(Thread):
             elif post["type"] == "text":
                 image_list = self.text_post_parse(post)
             elif post["type"] == "video":
+                # Пропускаем если видео
                 continue
                 image_list = self.video_post_parse(post)
             else:

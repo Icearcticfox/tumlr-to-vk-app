@@ -26,9 +26,6 @@ class DbConn:
         add_date = str(datetime.datetime.now().date())
         if not self.tumblr_posts_collection.find_one({"post_id": post_id}):
             try:
-                # if [photo for photo in photos if photo.split(".")[-1] in ["gif"]]:
-                #     print("Это гифка не публикуем")
-                #     published = "Failed"
                 self.tumblr_posts_collection.insert_one({"post_id": post_id, "published": published,
                                                          "blog_name": blog_name, "photos": photos,
                                                          "source_url": source_url, "date_add": add_date})
@@ -40,7 +37,6 @@ class DbConn:
         return post
 
     def daily_posts_queue_publish(self, published):
-        #all_public_daily = self.tumblr_posts_collection.find({"published": True, "publish_date": publish_date})
         all_public_daily = self.tumblr_posts_collection.find({"published": published})
         return all_public_daily
 

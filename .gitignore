@@ -8,3 +8,5 @@ putyouinabettermood
 .idea
 __pycache__
 .env
+kubernetes_deploy/mongo-secret.yaml
+kubernetes_deploy/tumblr-to-vk-secrets.yaml
