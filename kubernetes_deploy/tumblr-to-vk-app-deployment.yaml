@@ -58,7 +58,7 @@ spec:
                   name: tumblr-secret
                   key: DB_USER
             - name: FILES_FOLDER
-              value: "/var/posts"
+              value: "/tumblr-storage "
             - name: GROUP_ID
               valueFrom:
                 secretKeyRef:
@@ -100,10 +100,11 @@ spec:
                   name: tumblr-secret
                   key: USER_ID
           image: icearcticfox/tumblr-to-vk-app:raspberry-0.1
+          imagePullPolicy: Always
           name: tumblr-to-vk-app
           resources: {}
           volumeMounts:
-            - mountPath: /tumblr-to-vk-app
+            - mountPath: /tumblr-storage
               name: tumblr-storage
               readOnly: false
       restartPolicy: Always

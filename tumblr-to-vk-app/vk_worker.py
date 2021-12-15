@@ -196,5 +196,6 @@ class VkWorker(Thread):
                 time.sleep(2400)
             except BaseException as ex:
                 print(f"Ошибка в треде vk_workers {ex}")
+                time.sleep(10)
                 print("Пропускаем пост")
                 self.post_publisher.skip_post(post_data)

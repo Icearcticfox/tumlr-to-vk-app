@@ -99,4 +99,5 @@ class TumblrWorker(Thread):
                 self.dashboard_post_getter()
                 time.sleep(7200)
             except Exception as ex:
+                time.sleep(10)
                 print(f"Ошибка в треде tumblr_workers {ex}")
