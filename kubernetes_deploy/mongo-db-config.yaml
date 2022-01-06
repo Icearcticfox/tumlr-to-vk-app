@@ -6,5 +6,5 @@ metadata:
 data:
   script.sh: |-
     echo "Creating mongo users..."
-    mongo admin --host localhost:27017 -u "${MONGO_INITDB_ROOT_USERNAME}" -p "${MONGO_INITDB_ROOT_PASSWORD}" --eval "db.createUser({user: '${DB_USER}', pwd: '${DB_PASSWORD}', roles: [{role: 'readWrite', db: '${DB_NAME}'}]}); db.createUser({user: '${DB_ADMIN_USER}', pwd: '${DB_ADMIN_PASSWORD}', roles: [{role: 'userAdminAnyDatabase', db: 'admin'}]});"
+    mongo admin --host localhost:27017 -u "${MONGO_INITDB_ROOT_USERNAME}" -p "${MONGO_INITDB_ROOT_PASSWORD}" --eval "db.createUser({user: '${DB_USER}', pwd: '${DB_PASSWORD}', roles: [{role: 'readWrite', db: '${DB_NAME}'}]}); db.createUser({user: '${DB_ADMIN_USER}', pwd: '${DB_ADMIN_PASSWORD}', roles: [{role: 'userAdminAnyDatabase', db: 'admin'}]}); db.createUser({user: '${MONGO_EXPORTER_USERNAME}', pwd: '${MONGO_EXPORTER_PASSWORD}', roles: [{role: 'clusterAdmin', db: 'admin'}, {role: 'clusterAdmin', db: '${DB_NAME}'}]});"
     echo "Mongo users created."

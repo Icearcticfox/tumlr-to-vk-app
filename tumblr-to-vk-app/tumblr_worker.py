@@ -3,6 +3,7 @@ import time
 import pytumblr
 from urllib import request
 from threading import Thread
+from logger import log
 
 
 class TumblrWorker(Thread):
@@ -19,6 +20,7 @@ class TumblrWorker(Thread):
                                                 consumer_secret=consumer_secret,
                                                 oauth_token=oauth_token,
                                                 oauth_secret=oauth_secret)
+        log.debug("Авторизация tumblr", self.client )
         self.db_client = db_client
         self.time_offset = 0
         self.files_folder = files_folder
@@ -84,6 +86,8 @@ class TumblrWorker(Thread):
         while True:
             print(f"time_offset {self.time_offset}")
             dashboard = self.client.dashboard(limit=10, offset=self.time_offset)
+            import logger
+            logger.log.info("12121")
 
             if self.dashboard_parser(dashboard):
                 self.time_offset = 0
@@ -99,5 +103,5 @@ class TumblrWorker(Thread):
                 self.dashboard_post_getter()
                 time.sleep(7200)
             except Exception as ex:
-                time.sleep(10)
+                time.sleep(30)
                 print(f"Ошибка в треде tumblr_workers {ex}")

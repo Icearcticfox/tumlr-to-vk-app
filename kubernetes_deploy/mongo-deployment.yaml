@@ -61,6 +61,16 @@ spec:
                 secretKeyRef:
                   name: mongo-secret
                   key: MONGO_INITDB_ROOT_USERNAME
+            - name: MONGO_EXPORTER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_EXPORTER_USERNAME
+            - name: MONGO_EXPORTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_EXPORTER_PASSWORD
           image: mongo:4.4.9
 #          command:
 #            - /scripts/script.sh

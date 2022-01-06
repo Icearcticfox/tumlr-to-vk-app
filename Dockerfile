@@ -5,6 +5,7 @@ ARG IMAGE=balenalib/aarch64-alpine-python
 FROM $IMAGE
 #FROM python:$TAG
 
+
 ARG ARG_TIMEZONE=Europe/Moscow
 
 ENV ENV_TIMEZONE ${ARG_TIMEZONE}
@@ -23,10 +24,11 @@ RUN apk add tzdata \
 #    && dpkg-reconfigure --frontend noninteractive tzdata \
 #    && pip install -r requirements.txt
 
-ENTRYPOINT ["python","-u","./main.py"]
+ENTRYPOINT ["python","-u","main.py"]
 
 #COPY api-serv.py ./
 
 #ENTRYPOINT ["python", "./main.py"]
 
 #EXPOSE 8099
+# sudo docker build . --platform aarch64 -t icearcticfox/tumblr-to-vk-app:aarch64-0.1.0

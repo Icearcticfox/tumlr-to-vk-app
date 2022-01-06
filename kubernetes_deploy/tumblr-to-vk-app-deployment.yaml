@@ -41,7 +41,7 @@ spec:
                   name: tumblr-secret
                   key: APP_SERVICE_KEY
             - name: CONNECTION_STRING
-              value: "mongo:27017"
+              value: "mongo:27017/tumblr"
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
@@ -58,7 +58,7 @@ spec:
                   name: tumblr-secret
                   key: DB_USER
             - name: FILES_FOLDER
-              value: "/tumblr-storage "
+              value: "/tumblr-storage"
             - name: GROUP_ID
               valueFrom:
                 secretKeyRef:
@@ -99,7 +99,7 @@ spec:
                 secretKeyRef:
                   name: tumblr-secret
                   key: USER_ID
-          image: icearcticfox/tumblr-to-vk-app:raspberry-0.1
+          image: icearcticfox/tumblr-to-vk-app:aarch64-0.1.0
           imagePullPolicy: Always
           name: tumblr-to-vk-app
           resources: {}

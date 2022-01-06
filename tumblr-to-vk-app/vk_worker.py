@@ -191,11 +191,12 @@ class VkWorker(Thread):
                 print("берем пост из очереди")
                 while post_data is False:
                     post_data = self.queue_picker()
+                    time.sleep(15)
                 self.post_publisher.post_publish(post_data)
                 print("ожидаем след поста")
                 time.sleep(2400)
             except BaseException as ex:
+                time.sleep(30)
                 print(f"Ошибка в треде vk_workers {ex}")
-                time.sleep(10)
                 print("Пропускаем пост")
                 self.post_publisher.skip_post(post_data)
